@@ -1,0 +1,137 @@
+module
+
+public import Mathlib
+public import StrongPerfectGraphTheorem.Types.Core
+public import StrongPerfectGraphTheorem.Types.Prisms
+public import StrongPerfectGraphTheorem.Types.Staircases
+public import StrongPerfectGraphTheorem.Types.LongOddPrism
+public import StrongPerfectGraphTheorem.Types.Classes
+public import StrongPerfectGraphTheorem.Types.Decompositions
+public import StrongPerfectGraphTheorem.Types.Appearances
+public import StrongPerfectGraphTheorem.ProofLemmas.Thm132FinalContradiction
+
+/-!
+# Section 13 — The long odd prism
+
+The seven numbered statements 13.1–13.7 of Chudnovsky–Robertson–Seymour–Thomas, *The Strong
+Perfect Graph Theorem* (published/Annals version, printed pages 78–86).
+
+Every defined term used here is imported and never restated:
+
+* *right-sequence*, *earlier*, *predecessor*, *trajectory*, *birth*, *`b`-optimal banister*,
+  *3-breaker* and *recalcitrant* come from `StrongPerfectGraphTheorem.Types.LongOddPrism`;
+* *strongly maximal staircase*, *right-star*, *banister*, *1-breaker* and *2-breaker* from
+  `StrongPerfectGraphTheorem.Types.Staircases`;
+* *even prism*, *long prism*, *odd prism* from `StrongPerfectGraphTheorem.Types.Prisms`;
+* *appearance* from `StrongPerfectGraphTheorem.Types.Appearances`;
+* the class `F₅` from `StrongPerfectGraphTheorem.Types.Classes`;
+* *proper 2-join*, *proper homogeneous pair*, *balanced skew partition* from
+  `StrongPerfectGraphTheorem.Types.Decompositions`;
+* *Berge*, *path*, *antipath*, *length*, *interior*, *`X`-complete*, *`X`-complete edge*,
+  *complete to*, *anticonnected* from `StrongPerfectGraphTheorem.Types.Core`.
+
+Encoding conventions:
+
+* a path/antipath is the list of its vertices in order; `V(P)` for such a list `P` is
+  `{v | v ∈ P}`, `P*` is `SPGT.interior P` and the length of `P` is `pathLength P`;
+* a staircase `K = (S = (A, C, B), a₀`-`R₀`-`b₀)` is carried by the seven pieces of data
+  `A C B : Set V`, `a₀ : V`, `R₀ : List V`, `b₀ : V`, and `V(K)` is `staircaseVertices`;
+* the paper's right-sequence `x₁, …, x_t` is the list `x : List V`, and the set
+  `X = {x₁, …, x_t}` is `{v | v ∈ x}`;
+* *"there is no appearance of `K₄` in `G`"* is `¬ Appears G (⊤ : SimpleGraph (Fin 4))`;
+* *"there is no even prism in `G`"* is: no three paths of `G` form an even prism;
+* *"there is no 1-breaker in `G`"*, *"no 2-breaker"*, *"there is a 3-breaker"* existentially
+  quantify the data carried by `IsOneBreaker`, `IsTwoBreaker`, `IsThreeBreaker`.
+
+Published-vs-draft notes (see the transcription file for the full list):
+
+* **13.4** is the *published* form: its 2-joins are **proper** 2-joins and its third outcome is
+  *"`G` admits a **proper homogeneous pair**"* (the arXiv draft said *"an M-join"*).  Its
+  hypothesis is transcribed literally — *"`G` is Berge, there is no appearance of `K₄` in
+  either `G` or `Ḡ`, and `G` contains a long odd prism as an induced subgraph"* — and **not**
+  as *"`G, Ḡ ∈ F₄`"*, which is how the statement 1.8.5 that 13.4 restates is phrased; the two
+  agree only modulo the elsewhere-proved disposal of long *even* prisms.
+* **13.6** carries the published hypothesis `X ⊆ V(G) \ V(P)` (the draft had `X ⊆ V(G)`).
+-/
+
+@[expose] public section
+
+set_option autoImplicit false
+
+namespace StrongPerfectGraphTheorem.Statements.S13
+
+open StrongPerfectGraphTheorem.Types.Core StrongPerfectGraphTheorem.Types.Core.SPGT
+open StrongPerfectGraphTheorem.Types.Prisms StrongPerfectGraphTheorem.Types.Prisms.SPGT
+open StrongPerfectGraphTheorem.Types.Staircases StrongPerfectGraphTheorem.Types.Staircases.SPGT
+open StrongPerfectGraphTheorem.Types.LongOddPrism StrongPerfectGraphTheorem.Types.LongOddPrism.SPGT
+open StrongPerfectGraphTheorem.Types.Classes StrongPerfectGraphTheorem.Types.Classes.SPGT
+open StrongPerfectGraphTheorem.Types.Decompositions StrongPerfectGraphTheorem.Types.Decompositions.SPGT
+open StrongPerfectGraphTheorem.Types.Appearances StrongPerfectGraphTheorem.Types.Appearances.SPGT
+
+namespace SPGT
+
+variable {V : Type*} [Fintype V] [DecidableEq V]
+
+
+/-- **13.2** (printed p. 80)
+
+PAPER: *"Let `G` be Berge, containing no appearance of `K₄`, no even prism, no 1-breaker and
+no 2-breaker.  Let `K = (S = (A, C, B), a₀`-`R₀`-`b₀)` be a strongly maximal staircase in `G`,
+and let `x₁, …, x_t` be a right-sequence.  Then `x₁, …, x_t` are all adjacent to `a₀`."* -/
+theorem thm_13_2 (G : SimpleGraph V) (hG : Berge G)
+    (hK4 : ¬ Appears G (⊤ : SimpleGraph (Fin 4)))
+    (heven : ¬ ∃ (s t : Fin 3 → V) (R₁ R₂ R₃ : List V), IsEvenPrism G s t R₁ R₂ R₃)
+    (h1br : ¬ ∃ A' C' B' F Q : Set V, IsOneBreaker G A' C' B' F Q)
+    (h2br : ¬ ∃ (A' C' B' : Set V) (a' : V) (R' : List V) (b' : V) (Q : Set V),
+      IsTwoBreaker G A' C' B' a' R' b' Q)
+    (A C B : Set V) (a₀ b₀ : V) (R₀ : List V)
+    (hK : StronglyMaximalStaircase G A C B a₀ R₀ b₀)
+    (x : List V) (hx : IsRightSequence G A C B x) :
+    ∀ v ∈ x, G.Adj v a₀ := by
+  classical
+  -- PAPER: *"Suppose the theorem is false, and choose `t` as small as possible such that the
+  -- statement of the theorem does not hold."*  Equivalently, we induct on the length of the
+  -- right-sequence: the staircase may change, but the strip `(A, C, B)` does not.
+  suffices H : ∀ n : ℕ, ∀ (a₀' b₀' : V) (R₀' x' : List V), x'.length = n →
+      StronglyMaximalStaircase G A C B a₀' R₀' b₀' → IsRightSequence G A C B x' →
+      ∀ v ∈ x', G.Adj v a₀' from
+    H x.length a₀ b₀ R₀ x rfl hK hx
+  intro n
+  induction n using Nat.strong_induction_on with
+  | _ n IHn =>
+    intro a₀ b₀ R₀ x hxlen hK hx
+    have hIH : ∀ y : List V, y.length < x.length → IsRightSequence G A C B y →
+        ∀ (a' b' : V) (R' : List V), StronglyMaximalStaircase G A C B a' R' b' →
+        ∀ v ∈ y, G.Adj v a' := by
+      intro y hylen hy a' b' R' hK' v hv
+      exact IHn y.length (by omega) a' b' R' y rfl hK' hy v hv
+    intro v hv
+    by_contra hvbad
+    -- *"So `t ≥ 1`, and `x₁, …, x_{t−1}` are all adjacent to `a₀`, and `x_t` is not."*
+    have hex : ∃ k : ℕ, ∃ hk : k < x.length, ¬ G.Adj x[k] a₀ := by
+      obtain ⟨k, hk, hkv⟩ := List.mem_iff_getElem.mp hv
+      exact ⟨k, hk, by simpa [hkv] using hvbad⟩
+    let i : ℕ := Nat.find hex
+    obtain ⟨hi, hbad⟩ := Nat.find_spec hex
+    have hprev : ∀ (j : ℕ) (hj : j < i), G.Adj x[j] a₀ := by
+      intro j hj
+      by_contra hn
+      exact Nat.find_min hex hj ⟨by omega, hn⟩
+    obtain ⟨d⟩ := StrongPerfectGraphTheorem.ProofLemmas.Thm132Setup.exists_firstBadData
+      hG hK4 heven h1br h2br hK hx i hi hprev hbad hIH
+    have hbW := StrongPerfectGraphTheorem.ProofLemmas.Thm132Claim2.right_end_complete_trajectory
+      hG hK4 heven h1br h2br hK hx hi hprev hbad d
+    obtain ⟨hra, hlast⟩ :=
+      StrongPerfectGraphTheorem.ProofLemmas.Thm132Claim3.left_end_adj_and_last_rightStar
+        hG hK4 heven h1br h2br hK hx hi hprev hbad d hbW
+    have hwone := StrongPerfectGraphTheorem.ProofLemmas.Thm132Claim5.trajectory_length_one
+      hG heven hK d hbW hra hlast
+    obtain ⟨P, hP, hPodd, hPint⟩ :=
+      StrongPerfectGraphTheorem.ProofLemmas.Thm132FinalPath.exists_final_odd_path
+        hG heven hK d hbW hra hlast hwone
+    exact StrongPerfectGraphTheorem.ProofLemmas.Thm132FinalContradiction.endgame_contradiction
+      hG hK4 heven h1br h2br hK hx d hlast hwone P hP hPodd hPint hIH
+
+end SPGT
+
+end StrongPerfectGraphTheorem.Statements.S13

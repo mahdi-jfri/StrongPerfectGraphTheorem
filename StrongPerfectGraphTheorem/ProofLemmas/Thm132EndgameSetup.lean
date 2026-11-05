@@ -1,0 +1,154 @@
+module
+
+public import StrongPerfectGraphTheorem.ProofLemmas.Thm132SecondBanister
+public import StrongPerfectGraphTheorem.ProofLemmas.Thm132BaseSeparation
+public import StrongPerfectGraphTheorem.ProofLemmas.Thm132FinalPath
+public import StrongPerfectGraphTheorem.ProofLemmas.Thm132OptimalLength
+
+@[expose] public section
+
+set_option autoImplicit false
+set_option maxHeartbeats 1000000
+
+/-! # The separated second banister used in the endgame of 13.2. -/
+
+namespace StrongPerfectGraphTheorem.ProofLemmas.Thm132EndgameSetup
+
+open StrongPerfectGraphTheorem.Types.Core StrongPerfectGraphTheorem.Types.Core.SPGT
+open StrongPerfectGraphTheorem.Types.Prisms StrongPerfectGraphTheorem.Types.Prisms.SPGT
+open StrongPerfectGraphTheorem.Types.Staircases StrongPerfectGraphTheorem.Types.Staircases.SPGT
+open StrongPerfectGraphTheorem.Types.LongOddPrism StrongPerfectGraphTheorem.Types.LongOddPrism.SPGT
+open StrongPerfectGraphTheorem.Types.Appearances StrongPerfectGraphTheorem.Types.Appearances.SPGT
+open StrongPerfectGraphTheorem.ProofLemmas.Thm132Setup
+
+variable {V : Type*} [Fintype V] [DecidableEq V]
+
+/-- Choose the second optimal banister, separate it from the old one, and use
+the final Roussel--Rubio path to show that its left end misses `r`. -/
+theorem exists_second_configuration
+    {G : SimpleGraph V} (hG : Berge G)
+    (hK4 : ¬ Appears G (⊤ : SimpleGraph (Fin 4)))
+    (heven : ¬ ∃ (s t : Fin 3 → V) (R₁ R₂ R₃ : List V),
+      IsEvenPrism G s t R₁ R₂ R₃)
+    (h1br : ¬ ∃ A' C' B' F Q : Set V, IsOneBreaker G A' C' B' F Q)
+    (h2br : ¬ ∃ (A' C' B' : Set V) (a' : V) (R' : List V) (b' : V) (Q : Set V),
+      IsTwoBreaker G A' C' B' a' R' b' Q)
+    {A C B : Set V} {a₀ b₀ : V} {R₀ x : List V} {i : ℕ}
+    (hK : StronglyMaximalStaircase G A C B a₀ R₀ b₀)
+    (hx : IsRightSequence G A C B x)
+    (d : FirstBadData G A C B a₀ b₀ R₀ x i)
+    (hlast : IsRightStar G A C B d.last)
+    (hwone : d.w.length = 1)
+    (P : List V) (hP : IsPathFrom G P d.r d.last)
+    (hPodd : Odd (pathLength P))
+    (hPint : ∀ z, z ∈ interior P ↔ z ∈ interior R₀)
+    (hIH : ∀ y : List V, y.length < x.length → IsRightSequence G A C B y →
+      ∀ (a' b' : V) (R' : List V), StronglyMaximalStaircase G A C B a' R' b' →
+      ∀ v ∈ y, G.Adj v a') :
+    ∃ (r' : V) (R' : List V) (j : ℕ) (hj : j < x.length),
+      BOptimalBanister G A C B x r' R' d.last ∧
+      birth G A C B x r' x[j] ∧ j < d.birthIndex ∧
+      pathLength R' = 1 ∧
+      (∀ z ∈ R₀, z ∉ R') ∧
+      (∀ p ∈ R₀.tail, ∀ q ∈ R'.dropLast, ¬ G.Adj p q) ∧
+      ¬ G.Adj d.r r' := by
+  classical
+  obtain ⟨r', R', j, hj, hopt', hbirth', hjd⟩ :=
+    StrongPerfectGraphTheorem.ProofLemmas.Thm132SecondBanister.exists_second_optimal hx d hlast hwone
+  -- PAPER: *"From the minimality of `t` (replacing `R₀` by `R`) it follows that `R` has
+  -- length 1"* — applied to the second optimal banister, whose birth `x[j]` is earlier than
+  -- the birth of the first one.
+  have hR'one := StrongPerfectGraphTheorem.ProofLemmas.Thm132OptimalLength.optimal_banister_length_one
+    hG heven hK hx hopt' j hj hbirth'
+    (by have := d.birthIndex_lt; omega) hIH
+  have hearlier : Earlier x (x[j]'hj) (x[d.birthIndex]'d.birthIndex_lt) :=
+    ⟨j, d.birthIndex, hj, d.birthIndex_lt, rfl, rfl, hjd⟩
+  have hA : A.Nonempty := hK.1.1.1.2.1.1
+  have hnolink := StrongPerfectGraphTheorem.ProofLemmas.Thm132BaseSeparation.base_halves_not_linked
+    hA d.optimal hK.1.1.2.1 hopt'.1 hbirth' d.birth_r hearlier
+  have hdisj : ∀ z ∈ R₀, z ∉ R' :=
+    StrongPerfectGraphTheorem.ProofLemmas.Thm132BanisterSeparation.banisters_disjoint_of_halves_not_linked
+      hA hK.1.1.2.1 hopt'.1 hnolink
+  have hanti : ∀ p ∈ R₀.tail, ∀ q ∈ R'.dropLast, ¬ G.Adj p q :=
+    StrongPerfectGraphTheorem.ProofLemmas.Thm132BanisterSeparation.halves_anticomplete_of_not_linked hnolink
+  have hR'len : R'.length = 2 := by
+    rw [pathLength] at hR'one
+    have hpos := PathBasics.path_length_pos hopt'.1.1.1
+    omega
+  obtain ⟨u, v, hR'shape⟩ := StrongPerfectGraphTheorem.ProofLemmas.PathGlue.length_eq_two hR'len
+  have hu : u = r' := by
+    rw [hR'shape] at hopt'
+    simpa using hopt'.1.1.2.1
+  have hv : v = d.last := by
+    rw [hR'shape] at hopt'
+    simpa using hopt'.1.1.2.2
+  subst u
+  subst v
+  have hR'shape' : R' = [r', d.last] := hR'shape
+  have hr'last : G.Adj r' d.last :=
+    PathBasics.isPathFrom_ends_adj_of_length_one hopt'.1.1 hR'one
+  have hrw : ¬ G.Adj d.r d.last := by
+    have hwne : d.w ≠ [] := by rw [List.ne_nil_iff_length_pos, hwone]; omega
+    have hlastMem : d.last ∈ d.w := by
+      have hc' : d.w.getLast? = some d.last := by
+        simpa [List.getLast?_cons_of_ne_nil hwne] using d.trajectory_antipath.2.2
+      exact PathBasics.getLast_mem hc'
+    obtain ⟨z, hz⟩ := List.length_eq_one_iff.mp hwone
+    have hzlast : z = d.last := by
+      have hc := d.trajectory_antipath.2.2
+      rw [hz] at hc
+      simpa [List.getLast?_cons_of_ne_nil (by simp : [z] ≠ [])] using hc
+    have htrajOne : pathLength (d.r :: d.w) = 1 := by simp [pathLength, hz]
+    have hc := PathBasics.isPathFrom_ends_adj_of_length_one d.trajectory_antipath htrajOne
+    rw [SimpleGraph.compl_adj] at hc
+    exact hc.2
+  have hno : ¬ G.Adj d.r r' := by
+    intro hrr'
+    have hr'neR : r' ∉ R₀ := by
+      intro hm
+      exact hdisj r' hm (by simp [hR'shape'])
+    have hr'notP : r' ∉ P := by
+      intro hm
+      by_cases hint : r' ∈ interior P
+      · exact hr'neR ((hPint r').mp hint |> PathBasics.interior_subset)
+      · have hc := (PathBasics.mem_interior_iff_of_pathFrom hP).not.mp hint
+        push_neg at hc
+        have hre : r' = d.r ∨ r' = d.last := by
+          by_cases hne : r' = d.r
+          · exact Or.inl hne
+          · exact Or.inr (hc hm hne)
+        rcases hre with hre | hre
+        · exact G.irrefl (hre ▸ hrr')
+        · exact G.irrefl (hre ▸ hr'last)
+    have hcross : ∀ z ∈ P, (G.Adj z r' ↔ z = d.r ∨ z = d.last) := by
+      intro z hz
+      constructor
+      · intro hzr'
+        by_cases hint : z ∈ interior P
+        · have hzR : z ∈ interior R₀ := (hPint z).mp hint
+          have hzdata := (PathBasics.mem_interior_iff_of_pathFrom hK.1.1.2.1.1).mp hzR
+          have hztail :=
+            (HyperprismRungStructure.mem_tail_iff_of_pathFrom hK.1.1.2.1.1).2
+              ⟨hzdata.1, hzdata.2.1⟩
+          exact absurd hzr' (hanti z hztail r' (by simp [hR'shape']))
+        · have hc := (PathBasics.mem_interior_iff_of_pathFrom hP).not.mp hint
+          push_neg at hc
+          by_cases hzr : z = d.r
+          · exact Or.inl hzr
+          · exact Or.inr (hc hz hzr)
+      · rintro (rfl | rfl)
+        · exact hrr'
+        · exact hr'last.symm
+    have hP3 : 3 ≤ P.length := by
+      have hpnotone : pathLength P ≠ 1 := by
+        intro hone
+        exact hrw (PathBasics.isPathFrom_ends_adj_of_length_one hP hone)
+      obtain ⟨k, hk⟩ := hPodd
+      rw [PathBasics.pathLength_eq] at hk hpnotone
+      have hp := PathBasics.path_length_pos hP.1
+      omega
+    exact StrongPerfectGraphTheorem.ProofLemmas.Thm132Claim5Long.no_odd_path_closer
+      hG hP hPodd hP3 hr'notP hcross
+  exact ⟨r', R', j, hj, hopt', hbirth', hjd, hR'one, hdisj, hanti, hno⟩
+
+end StrongPerfectGraphTheorem.ProofLemmas.Thm132EndgameSetup

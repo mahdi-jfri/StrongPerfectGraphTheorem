@@ -1,0 +1,6 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": ["SimpleGraph.strong_perfect_graph_theorem"],
+  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"]
+}

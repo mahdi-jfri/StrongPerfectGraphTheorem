@@ -1,0 +1,20 @@
+name: Build
+
+# Builds the whole library, Challenge.lean and Solution.lean with the toolchain in
+# lean-toolchain, using the Mathlib cache.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1

@@ -1,0 +1,156 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+# formalization.yaml (v0.4): https://github.com/mathlib-initiative/formalization.yaml
+
+version: "v0.4"
+
+project:
+  name: "The Strong Perfect Graph Theorem"
+  description: >-
+    A Lean 4 proof of the Strong Perfect Graph Theorem of Chudnovsky, Robertson, Seymour and
+    Thomas: a finite graph is perfect if and only if it is Berge. A graph is perfect if every
+    induced subgraph has chromatic number equal to its clique number. It is Berge if neither the
+    graph nor its complement contains an induced cycle of odd length at least five. The proof
+    follows the paper of Chudnovsky, Robertson, Seymour and Thomas (Annals of Mathematics, 2006).
+    It formalizes the decomposition theorem for Berge graphs (Theorem 1.3 of the paper) through
+    the numbered results of Sections 2 to 24. It also proves the earlier results that the paper
+    cites, among them Lovász's weak perfect graph theorem, the results of Cornuéjols and
+    Cunningham on 2-joins, of Chvátal and Sbihi on homogeneous pairs, of Chvátal on star cutsets,
+    and of Roussel and Rubio. The statement in Challenge.lean uses only Mathlib's definitions of
+    induced subgraphs, chromatic number, clique number, cycle graphs and induced containment.
+  authors:
+    - "Arshia Soltani Moakhar"
+    - "Iman Gholami"
+    - "Max Springer"
+    - "Mahdi JafariRaviz"
+    - "MohammadTaghi Hajiaghayi"
+  responsible_maintainers:
+    - "Mahdi JafariRaviz"
+  license: "Apache-2.0"
+
+sources:
+  - title: "The strong perfect graph theorem"
+    authors: ["Maria Chudnovsky", "Neil Robertson", "Paul Seymour", "Robin Thomas"]
+    id: "doi:10.4007/annals.2006.164.51"
+    type: "paper"
+    location: "Theorem 1.2, with the numbered results of Sections 1 to 24 used in its proof"
+    relationship: "formalizes"
+    note: >-
+      Annals of Mathematics 164 (2006), 51-229. Page numbers in the Lean docstrings refer to the
+      authors' manuscript dated July 19, 2005
+      (https://web.math.princeton.edu/~pds/papers/perfect/perfect.pdf), whose theorem numbering
+      is that of the published paper. Three intermediate statements of the paper (2.5, the
+      second conclusion of 18.3, and outcome 4 of 9.3) are false as printed; the Lean states and
+      uses corrected versions. See docs/NOTES_ON_THE_PAPER.md.
+  - title: "A characterization of perfect graphs"
+    authors: ["László Lovász"]
+    id: "doi:10.1016/0095-8956(72)90045-7"
+    type: "paper"
+    location: "The weak perfect graph theorem (1.1 of the SPGT paper) and the replication lemma"
+    relationship: "background"
+    note: "Cited by the SPGT paper as [16]. Proved in this library (StrongPerfectGraphTheorem/Statements/S01/Thm_1_1.lean and Thm_E7_lovasz_replication.lean)."
+  - title: "Compositions for perfect graphs"
+    authors: ["Gérard Cornuéjols", "William H. Cunningham"]
+    id: "doi:10.1016/S0012-365X(85)80001-7"
+    type: "paper"
+    location: "No minimum imperfect graph admits a proper 2-join"
+    relationship: "background"
+    note: "Cited by the SPGT paper as [13]. Proved in this library (StrongPerfectGraphTheorem/Statements/S01/Thm_E2_no_proper_2_join_in_minimum_imperfect.lean)."
+  - title: "Bull-free Berge graphs are perfect"
+    authors: ["Vašek Chvátal", "Najiba Sbihi"]
+    id: "doi:10.1007/BF01788536"
+    type: "paper"
+    location: "No minimum imperfect graph admits a proper homogeneous pair"
+    relationship: "background"
+    note: "Cited by the SPGT paper as [7]. Proved in this library (StrongPerfectGraphTheorem/Statements/S01/Thm_E3_no_proper_homogeneous_pair_in_minimum_imperfect.lean)."
+  - title: "Star-cutsets and perfect graphs"
+    authors: ["Vašek Chvátal"]
+    id: "doi:10.1016/0095-8956(85)90049-8"
+    type: "paper"
+    location: "No minimum imperfect graph has a star cutset"
+    relationship: "background"
+    note: "Cited by the SPGT paper as [6]. Proved in this library (StrongPerfectGraphTheorem/Statements/S01/Thm_E6_no_star_cutset_in_minimum_imperfect.lean)."
+  - title: "About skew partitions in minimal imperfect graphs"
+    authors: ["François Roussel", "Philippe Rubio"]
+    id: "doi:10.1006/jctb.2001.2044"
+    type: "paper"
+    location: "The lemma used as 2.1 of the SPGT paper"
+    relationship: "background"
+    note: "Cited by the SPGT paper as [23]. Proved in this library (StrongPerfectGraphTheorem/Statements/S02/Thm_2_1.lean)."
+
+related_formalizations:
+  - id: "doi:10.1145/3372885.3373819"
+    relationship: "independent"
+    note: >-
+      A. K. Singh and R. Natarajan, "A Constructive Formalization of the Weak Perfect Graph
+      Theorem", CPP 2020, in Coq. It proves the weak perfect graph theorem, which this library
+      proves independently in Lean as one ingredient of the strong theorem. We know of no earlier
+      complete formalization of the strong perfect graph theorem, but we have not done a full
+      literature search.
+
+classification:
+  arxiv: ["math.CO", "cs.DM"]
+  msc2020: ["05C17", "05C75", "05C15", "05C69", "05C76"]
+
+status:
+  scope: >-
+    Theorem 1.2 of the paper (the Strong Perfect Graph Theorem), in full, for all finite simple
+    graphs. The proof formalizes every numbered result of the paper that the proof of 1.2 uses,
+    and the earlier results the paper cites for that proof.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: ["propext", "Classical.choice", "Quot.sound"]
+  main_results:
+    - declaration: "SimpleGraph.strong_perfect_graph_theorem"
+      file: "Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator.json"
+
+automation:
+  methods:
+    - method: "agent"
+  notes: >-
+    The Lean code was written with AI agents, under the direction of the authors. The authors
+    describe their agentic framework for formalizing research mathematics in A. Soltani Moakhar,
+    I. Gholami, M. Springer, M. JafariRaviz and M. Hajiaghayi, "Beyond the Library: An Agentic
+    Framework for Autoformalizing Research Mathematics", arXiv:2606.31134v3 (August 5, 2026),
+    https://arxiv.org/abs/2606.31134v3.
+
+fidelity:
+  divergences: >-
+    The main theorem is stated exactly as in the paper, for finite simple graphs. Berge is stated
+    as "no induced cycle of odd length at least five in G or in its complement", which is the
+    paper's definition (every hole and antihole has even length) restated: a hole has length at
+    least four, so an odd hole has length at least five. Inside the proof, three intermediate
+    statements of the paper are false as printed (2.5 lacks the hypothesis that X is
+    anticonnected; the second conclusion of 18.3 fails for subpaths of length one; outcome 4 of
+    9.3 is false, with a machine-checked counterexample in
+    StrongPerfectGraphTheorem/Counterexamples/Thm93.lean). The Lean states corrected versions,
+    and every use in the paper is covered by them. Where a printed proof step is wrong or
+    incomplete, the Lean supplies a correct argument. docs/NOTES_ON_THE_PAPER.md lists these
+    points.
+
+review:
+  status: "agent-reviewed"
+  notes: >-
+    An automated audit compared every numbered statement, every definition it uses and every
+    printed proof step of the paper with the Lean text, and re-checked each claimed
+    counterexample. Its findings are in docs/NOTES_ON_THE_PAPER.md. No human expert has reviewed
+    the whole formalization line by line.
+
+alignment:
+  namespace: "SimpleGraph"
+  statements:
+    - source: "Theorem 1.2"
+      lean: "SimpleGraph.strong_perfect_graph_theorem"
+      module: "Solution.lean"
+      status: "proved"
+      note: "Restated with Mathlib's notions. The library form is StrongPerfectGraphTheorem.MainTheorem.SPGT.thm_1_2."
+    - source: "Theorem 1.3"
+      lean: "StrongPerfectGraphTheorem.MainTheorem.SPGT.thm_1_3"
+      module: "StrongPerfectGraphTheorem/Statements/S01/Thm_1_3.lean"
+      status: "proved"
+    - source: "Theorem 1.1 (Lovász)"
+      lean: "StrongPerfectGraphTheorem.MainTheorem.SPGT.thm_1_1"
+      module: "StrongPerfectGraphTheorem/Statements/S01/Thm_1_1.lean"
+      status: "proved"

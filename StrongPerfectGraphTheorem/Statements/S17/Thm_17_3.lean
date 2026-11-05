@@ -1,0 +1,99 @@
+/-  One numbered statement of the paper per module.  The module docstring below describes the
+    whole of Section 17. -/
+
+module
+
+public import Mathlib
+public import StrongPerfectGraphTheorem.Types.Core
+public import StrongPerfectGraphTheorem.Types.RousselRubio
+public import StrongPerfectGraphTheorem.Types.TriangleCatching
+public import StrongPerfectGraphTheorem.Types.Classes
+public import StrongPerfectGraphTheorem.ProofLemmas.Thm173Core
+
+/-!
+# Section 17 — Another extension of the Roussel–Rubio lemma
+
+The five numbered statements 17.1 … 17.5 of Chudnovsky–Robertson–Seymour–Thomas,
+*The Strong Perfect Graph Theorem* (published/Annals version, printed pages
+102–109).
+
+Every defined term used here already lives in an imported module; nothing is
+restated:
+
+* `StrongPerfectGraphTheorem.Types.Core` — `IsPathList`, `IsPathFrom`, `IsAntipathFrom`,
+  `pathLength`, `SPGT.interior`, `VertexComplete`, `VertexAnticomplete`,
+  `EdgeComplete`, `ConnectedSet`, `AnticonnectedSet`;
+* `StrongPerfectGraphTheorem.Types.RousselRubio` — `IsTriangle` (§2's *triangle*);
+* `StrongPerfectGraphTheorem.Types.TriangleCatching` — `IsReflectionOfTriangle` (§17's
+  *reflection*), `Catches` (§17's *catch*);
+* `StrongPerfectGraphTheorem.Types.Classes` — `InF7` (the class `F₇` of §1).
+
+Encoding conventions:
+
+* a *path* of the paper is the list `p : List V` of its vertices in order,
+  together with `IsPathList G p`; its length is `pathLength p`, its interior `P*`
+  is `SPGT.interior p` (always written qualified — a bare `interior` is Mathlib's
+  topological one), and `V(P)` is `{w : V | w ∈ p}`;
+* "`X ⊆ V(G) \ V(P)`" is `∀ w ∈ p, w ∉ X`;
+* an "`X`-complete vertex" is `VertexComplete G v X` and an "`X`-complete edge" is
+  `EdgeComplete G X u v`;
+* **the number of `X`-complete edges of `P`.**  Paths of the paper are *induced*
+  subgraphs, so the edges of `P` are exactly the adjacent pairs of vertices of
+  `P`, and their number is
+  `{e : Sym2 V | ∃ u ∈ p, ∃ v ∈ p, e = s(u, v) ∧ EdgeComplete G X u v}.ncard` —
+  a set of *unordered* pairs, so each edge is counted exactly once (this is the
+  convention already used in `StrongPerfectGraphTheorem.Statements.S02`);
+* the paper's `pₙ₋₁` is written `pn1` (the subscript minus `₋` is not a Lean
+  identifier character), pinned down by `p.dropLast.getLast? = some pn1`.
+-/
+
+@[expose] public section
+
+set_option autoImplicit false
+
+namespace StrongPerfectGraphTheorem.Statements.S17
+
+open StrongPerfectGraphTheorem.Types.Core StrongPerfectGraphTheorem.Types.Core.SPGT
+open StrongPerfectGraphTheorem.Types.RousselRubio StrongPerfectGraphTheorem.Types.RousselRubio.SPGT
+open StrongPerfectGraphTheorem.Types.TriangleCatching StrongPerfectGraphTheorem.Types.TriangleCatching.SPGT
+open StrongPerfectGraphTheorem.Types.Classes StrongPerfectGraphTheorem.Types.Classes.SPGT
+
+namespace SPGT
+
+variable {V : Type*} [Fintype V] [DecidableEq V]
+
+
+/-- **17.3** (printed p. 105).
+
+PAPER: *"Let `G ∈ F₇`, and let `F,Y ⊆ V(G)` be disjoint, such that `F` is
+connected and `Y` is anticonnected.  Let `a₀,b₀ ∈ V(G) \ (F ∪ Y)` and `a,b ∈ F`
+such that `a`-`a₀`-`b₀`-`b` is a 3-edge path in `G`.  Suppose that:*
+
+* *`a₀,b₀` are both `Y`-complete, and `a,b` are not `Y`-complete,*
+* *the only neighbours of `a₀,b₀` in `F` are `a` and `b` respectively,*
+* *`F \ {a}` is connected.*
+
+*Then there is a vertex `y ∈ Y` with no neighbour in `F \ {a}`."*
+
+(Introduced by: *"The following is a variant of 17.2, not so symmetrical, but more
+useful."*  Note that only `F \ {a}` — not also `F \ {b}` — is assumed connected.)
+
+Same encoding as 17.2; *"no neighbour in `F \ {a}`"* is
+`VertexAnticomplete G y (F \ {a})`. -/
+theorem thm_17_3 (G : SimpleGraph V) (hG : InF7 G) (F Y : Set V)
+    (hFY : Disjoint F Y) (hF : ConnectedSet G F) (hY : AnticonnectedSet G Y)
+    (a₀ b₀ a b : V) (ha₀ : a₀ ∉ F ∪ Y) (hb₀ : b₀ ∉ F ∪ Y)
+    (ha : a ∈ F) (hb : b ∈ F)
+    (hpath : IsPathList G [a, a₀, b₀, b])
+    (ha₀Y : VertexComplete G a₀ Y) (hb₀Y : VertexComplete G b₀ Y)
+    (haY : ¬ VertexComplete G a Y) (hbY : ¬ VertexComplete G b Y)
+    (ha₀F : {f ∈ F | G.Adj a₀ f} = {a}) (hb₀F : {f ∈ F | G.Adj b₀ f} = {b})
+    (hFa : ConnectedSet G (F \ {a})) :
+    ∃ y ∈ Y, VertexAnticomplete G y (F \ {a}) := by
+  exact StrongPerfectGraphTheorem.ProofLemmas.Thm173Core.main G hG F Y hFY hF hY a₀ b₀ a b
+    ha₀ hb₀ ha hb hpath ha₀Y hb₀Y haY hbY ha₀F hb₀F hFa
+
+
+end SPGT
+
+end StrongPerfectGraphTheorem.Statements.S17
